@@ -1,38 +1,66 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 import { env } from '@config/env';
+import { BadRequestError, ExternalServiceError } from '@common/errors';
+import { KarmaVerificationResponse } from './adjutor.types';
 
 export class AdjutorService {
 
-  async isBlacklisted(identity: string): Promise<boolean> {
+    async validateKarmaBlacklist(identity: string): Promise<void> {
+        const url = `${env.ADJUTOR_BASE_URL}/verification/karma/${encodeURIComponent(identity)}`;
 
-    try {
+        try {
+            const { data } = await axios.get<KarmaVerificationResponse>(url, {
+                headers: {
+                    Authorization: `Bearer ${env.ADJUTOR_API_KEY}`,
+                    Accept: 'application/json',
+                },
+                timeout: 10000,
+            });
 
-      const response = await axios.get(
-        `${env.ADJUTOR_BASE_URL}/verification/karma/${identity}`,
-        {
-          headers: {
-            Authorization: `Bearer ${env.ADJUTOR_API_KEY}`,
-          },
-        },
-      );
+            const karmaRecord = data.data;
 
-      return response.data?.data?.blacklisted === true;
+            // No Karma record found
+            if (!karmaRecord) {
+                return;
+            }
 
-    } catch {
+            /**
+             * Sandbox behaviour:
+             * The test environment always returns a record.
+             * Only block onboarding if there is actually money in contention.
+             */
+            if (env.NODE_ENV === 'development') {
+                if (Number(karmaRecord.amount_in_contention) > 0) {
+                    throw new BadRequestError(`User with identity '${identity}' is blacklisted on Lendsqr Karma.`,);
+                }
+                return;
+            }
 
-      /**
-       * Fail closed.
-       * We do not onboard users if
-       * Karma verification cannot be completed.
-       */
+            /**
+             * Production behaviour:
+             * Any Karma record means the user is blacklisted.
+             */
+            throw new BadRequestError(`User with identity '${identity}' is blacklisted on Lendsqr Karma.`,);
+        } catch (error) {
+            if (error instanceof BadRequestError) {
+                throw error;
+            }
 
-      throw new Error(
-        'Unable to verify Adjutor Karma.',
-      );
+            const axiosError = error as AxiosError;
+
+            console.error('Adjutor API Error:', {
+                url,
+                message: axiosError.message,
+                status: axiosError.response?.status,
+                response: axiosError.response?.data,
+            });
+
+            throw new ExternalServiceError(
+                'Unable to verify user against the Lendsqr Adjutor service.',
+            );
+        }
     }
-  }
 }
 
-export const adjutorService =
-  new AdjutorService();
+export const adjutorService = new AdjutorService();

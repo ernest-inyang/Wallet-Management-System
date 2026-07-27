@@ -61,13 +61,7 @@ export class WalletRepository extends BaseRepository {
     }
 
     async getBalance(userId: number,) {
-    
-        return this.db('wallets')
-            .where({
-                user_id: userId,
-            })
-            .first();
-    
+        return this.db('wallets').where({user_id: userId,}).first();
     }
 
 }

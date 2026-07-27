@@ -16,10 +16,12 @@ export class TransactionRepository extends BaseRepository {
             .first();
     }
 
-    async findByReference(reference: string) {
+    
+    async findByReference(reference:string,){
         return this.db('transactions')
-            .where({ reference })
-            .orderBy('created_at', 'asc');
+            .where({reference})
+            .first();
+    
     }
 
     async findByWallet(walletId: number) {

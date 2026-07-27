@@ -7,9 +7,13 @@ import transactionRoutes from '@modules/transactions/transaction.routes';
 
 const router = Router();
 
-router.get('/health', (req, res,) => {
-    res.json({ success: true, status: 'UP', timestamp: new Date(), });
-});
+router.get('/health', (_, res) => {
+    res.status(200).json({
+      success: true,
+      message: 'Wallet API is running.',
+      timestamp: new Date().toISOString(),
+    });
+});;
 
 router.use('/users', userRoutes);
 router.use('/wallet', walletRoutes);
