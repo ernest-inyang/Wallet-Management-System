@@ -1,0 +1,28 @@
+services:
+  mysql:
+    image: mysql:8.4
+
+    container_name: lendsqr-mysql
+
+    restart: unless-stopped
+
+    ports:
+      - "3306:3306"
+
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: lendsqr_wallet
+      MYSQL_USER: lendsqr
+      MYSQL_PASSWORD: lendsqrpassword
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mysql_data:

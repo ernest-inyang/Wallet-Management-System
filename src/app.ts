@@ -4,14 +4,16 @@ import cors from 'cors';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import pinoHttp from 'pino-http';
+import routes from './routes';
 
+import { requestLogger } from '@common/middleware/request-logger.middleware';
 import { logger } from '@config/logger';
-import { router } from '@routes/index';
-import { notFound } from '@common/middleware/notFound.middleware';
-import { errorHandler } from '@common/middleware/error.middleware';
+import { notFoundMiddleware } from '@common/middleware/not-found.middleware';
+import { errorMiddleware } from '@common/middleware/error.middleware';
 
 const app = express();
 
+app.use(requestLogger); 
 app.use(helmet());
 app.use(cors());
 app.use(compression());
@@ -27,8 +29,9 @@ app.use(
   }),
 );
 
-app.use(router);
-app.use(notFound);
-app.use(errorHandler);
+app.use('/api/v1', routes);
+app.use(notFoundMiddleware);
+app.use(errorMiddleware);
+
 
 export default app;
