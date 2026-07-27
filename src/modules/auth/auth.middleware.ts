@@ -15,33 +15,22 @@ declare global {
 }
 
 export class AuthMiddleware {
-  static authenticate(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) {
-    const header = req.headers.authorization;
 
-    if (!header) {
-      return next(
-        new UnauthorizedError(
-          'Authorization header missing.',
-        ),
-      );
+    static authenticate(req: Request, res: Response, next: NextFunction) {
+        const header = req.headers.authorization;
+        if (!header) {
+            return next(new UnauthorizedError('Authorization header missing.'),);
+        }
+
+        const token = header.replace('Bearer ', '');
+        try {
+            req.user = verifyToken(token);
+            next();
+        } catch {
+            next(new UnauthorizedError('Invalid authentication token.'),
+            );
+        }
     }
 
-    const token = header.replace('Bearer ', '');
 
-    try {
-      req.user = verifyToken(token);
-
-      next();
-    } catch {
-      next(
-        new UnauthorizedError(
-          'Invalid authentication token.',
-        ),
-      );
-    }
-  }
 }

@@ -25,11 +25,7 @@ export class WalletLedgerService {
     },
   ) {
 
-    const wallet =
-      await walletRepository.lockWallet(
-        payload.walletId,
-        trx,
-      );
+    const wallet = await walletRepository.lockWallet(payload.walletId, trx);
 
     if (!wallet) {
       throw new BadRequestError('Wallet not found.');
@@ -37,17 +33,8 @@ export class WalletLedgerService {
 
     const before = wallet.balance;
 
-    const after = Money.add(
-      before,
-      payload.amount,
-    );
-
-    await walletRepository.updateBalance(
-      wallet.id,
-      after,
-      trx,
-    );
-
+    const after = Money.add(before, payload.amount);
+    await walletRepository.updateBalance(wallet.id, after, trx,);
     await transactionRepository.create(
       {
         uuid: generateUuid(),
@@ -55,9 +42,6 @@ export class WalletLedgerService {
           payload.reference ??
           generateTransactionReference(),
         wallet_id: wallet.id,
-        user_id: payload.userId,
-        related_user_id:
-          payload.relatedUserId,
         type: payload.type,
         direction: TransactionDirection.CREDIT,
         status: TransactionStatus.SUCCESS,
@@ -104,9 +88,6 @@ export class WalletLedgerService {
         uuid: generateUuid(),
         reference: payload.reference ?? generateTransactionReference(),
         wallet_id: wallet.id,
-        user_id: payload.userId,
-        related_user_id:
-          payload.relatedUserId,
         type: payload.type,
         direction: TransactionDirection.DEBIT,
         status: TransactionStatus.SUCCESS,

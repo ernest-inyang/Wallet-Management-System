@@ -18,12 +18,11 @@ export class TransactionService {
         return db.transaction(async trx => {
 
             const wallet = await walletRepository.findByUserIdForUpdate(userId, trx,);
-
             if (!wallet) {
                 throw new NotFoundError('Wallet not found.',);
             }
 
-            await walletLedgerService.credit(
+            const newBalance = await walletLedgerService.credit(
                 trx,
                 {
                     walletId: wallet.id,
@@ -34,7 +33,7 @@ export class TransactionService {
                 },
             );
 
-            return {balance: wallet.balance,};
+            return {balance: newBalance};
 
         });
 
@@ -57,8 +56,7 @@ export class TransactionService {
                     userId,
                     amount: amount.toFixed(2),
                     type: TransactionType.WITHDRAW,
-                    description:
-                        'Wallet withdrawal',
+                    description: 'Wallet withdrawal',
                 },
             );
             return { balance, };
@@ -69,53 +67,32 @@ export class TransactionService {
     async transfer(senderId: number, recipientId: number, amount: number,) {
 
         if (senderId === recipientId) {
-            throw new BadRequestError(
-                'Cannot transfer to yourself.',
-            );
+            throw new BadRequestError('Cannot transfer to yourself.');
         }
 
         return db.transaction(async trx => {
 
-            const senderWallet =
-                await walletRepository.findByUserIdForUpdate(
-                    senderId,
-                    trx,
-                );
-
+            const senderWallet = await walletRepository.findByUserIdForUpdate(senderId, trx);
             if (!senderWallet) {
-                throw new NotFoundError(
-                    'Sender wallet not found.',
-                );
+                throw new NotFoundError('Sender wallet not found.');
             }
 
-            const receiverWallet =
-                await walletRepository.findByUserIdForUpdate(
-                    recipientId,
-                    trx,
-                );
-
+            
+            const receiverWallet = await walletRepository.findByUserIdForUpdate(recipientId, trx);
             if (!receiverWallet) {
-                throw new NotFoundError(
-                    'Recipient wallet not found.',
-                );
+                throw new NotFoundError('Recipient wallet not found.');
             }
 
-            const reference =
-                `TRF-${Date.now()}`;
+            const reference = `TRF-${Date.now()}`;
 
-            await walletLedgerService.debit(
-                trx,
+            await walletLedgerService.debit(trx,
                 {
-                    walletId:
-                        senderWallet.id,
+                    walletId: senderWallet.id,
                     userId: senderId,
-                    relatedUserId:
-                        recipientId,
-                    amount:
-                        amount.toFixed(2),
+                    relatedUserId: recipientId,
+                    amount: amount.toFixed(2),
                     type: TransactionType.TRANSFER,
-                    description:
-                        'Wallet transfer',
+                    description: 'Wallet transfer',
                     reference,
                 },
             );
@@ -123,24 +100,16 @@ export class TransactionService {
             await walletLedgerService.credit(
                 trx,
                 {
-                    walletId:
-                        receiverWallet.id,
-                    userId:
-                        recipientId,
-                    relatedUserId:
-                        senderId,
-                    amount:
-                        amount.toFixed(2),
-                    type: 'TRANSFER',
-                    description:
-                        'Wallet transfer',
+                    walletId: receiverWallet.id,
+                    userId: recipientId,
+                    relatedUserId: senderId,
+                    amount: amount.toFixed(2),
+                    type: TransactionType.TRANSFER,
+                    description: 'Wallet transfer',
                     reference,
                 },
             );
-
-            return {
-                reference,
-            };
+            return {reference};
 
         });
 
@@ -149,7 +118,6 @@ export class TransactionService {
     async history(userId: number, page = 1, limit = 10,) {
 
         const wallet = await walletRepository.findByUserId(userId);
-
         if (!wallet) {
             throw new NotFoundError('Wallet not found.',);
         }

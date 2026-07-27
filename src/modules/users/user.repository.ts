@@ -8,12 +8,8 @@ export class UserRepository extends BaseRepository {
     ): Promise<User> {
 
         const query = trx ?? this.db;
-
         const [id] = await query('users').insert(payload);
-
-        const user = await query<User>('users')
-            .where({ id })
-            .first();
+        const user = await query<User>('users').where({ id }).first();
 
         return user!;
     }

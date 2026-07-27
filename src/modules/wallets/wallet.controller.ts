@@ -7,15 +7,8 @@ export class WalletController {
 
   static async getBalance(req: Request, res: Response, next: NextFunction,) {
     try {
-      const result = await walletService.getBalance(
-        req.user!.userId,
-      );
-
-      return successResponse(
-        res,
-        'Wallet retrieved successfully.',
-        result,
-      );
+      const result = await walletService.getBalance(req.user!.userId,);
+      return successResponse(res, 'Wallet retrieved successfully.', result,);
     } catch (error) {
       next(error);
     }
