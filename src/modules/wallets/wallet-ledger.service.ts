@@ -38,10 +38,10 @@ export class WalletLedgerService {
     await transactionRepository.create(
       {
         uuid: generateUuid(),
-        reference:
-          payload.reference ??
-          generateTransactionReference(),
+        reference: payload.reference ?? generateTransactionReference(),
         wallet_id: wallet.id,
+        user_id: payload.userId,
+        related_user_id: payload.relatedUserId,
         type: payload.type,
         direction: TransactionDirection.CREDIT,
         status: TransactionStatus.SUCCESS,
@@ -88,6 +88,8 @@ export class WalletLedgerService {
         uuid: generateUuid(),
         reference: payload.reference ?? generateTransactionReference(),
         wallet_id: wallet.id,
+        user_id: payload.userId,
+        related_user_id: payload.relatedUserId,
         type: payload.type,
         direction: TransactionDirection.DEBIT,
         status: TransactionStatus.SUCCESS,
