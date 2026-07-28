@@ -17,38 +17,24 @@ export class AdjutorService {
                 },
                 timeout: 10000,
             });
-
             const karmaRecord = data.data;
 
             // No Karma record found
             if (!karmaRecord) {
                 return;
             }
-
-            /**
-             * Sandbox behaviour:
-             * The test environment always returns a record.
-             * Only block onboarding if there is actually money in contention.
-             */
-            if (env.NODE_ENV === 'development') {
-                if (Number(karmaRecord.amount_in_contention) > 0) {
-                    throw new BadRequestError(`User with identity '${identity}' is blacklisted on Lendsqr Karma.`,);
-                }
-                return;
+            // The test environment always returns a record. Only block onboarding if there is actually money in contention.
+            if (Number(karmaRecord.amount_in_contention) > 0) {
+                throw new BadRequestError(`User with identity '${identity}' is blacklisted on Lendsqr Karma.`,);
             }
+            return;
 
-            /**
-             * Production behaviour:
-             * Any Karma record means the user is blacklisted.
-             */
-            throw new BadRequestError(`User with identity '${identity}' is blacklisted on Lendsqr Karma.`,);
         } catch (error) {
             if (error instanceof BadRequestError) {
                 throw error;
             }
 
             const axiosError = error as AxiosError;
-
             console.error('Adjutor API Error:', {
                 url,
                 message: axiosError.message,
@@ -56,9 +42,7 @@ export class AdjutorService {
                 response: axiosError.response?.data,
             });
 
-            throw new ExternalServiceError(
-                'Unable to verify user against the Lendsqr Adjutor service.',
-            );
+            throw new ExternalServiceError('Unable to verify user against the Lendsqr Adjutor service.');
         }
     }
 }
