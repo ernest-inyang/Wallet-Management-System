@@ -16,7 +16,7 @@ jest.mock('../../../src/common/utils/reference', () => ({generateTransactionRefe
 describe('WalletLedgerService', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        
+
         jest.spyOn(uuidUtils, 'generateUuid')
             .mockReturnValue('uuid-123');
 
@@ -98,6 +98,7 @@ describe('WalletLedgerService', () => {
         expect(transactionRepository.create).toHaveBeenCalledWith(
             expect.objectContaining({
                 wallet_id: 1,
+                user_id: 1,
                 amount: '500.00',
                 balance_before: '1000.00',
                 balance_after: '1500.00',
@@ -216,6 +217,7 @@ describe('WalletLedgerService', () => {
         expect(transactionRepository.create).toHaveBeenCalledWith(
             expect.objectContaining({
                 wallet_id: 1,
+                user_id: 1,
                 amount: '300.00',
                 balance_before: '1000.00',
                 balance_after: '700.00',
