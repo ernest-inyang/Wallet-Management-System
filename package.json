@@ -9,6 +9,7 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc && tsc-alias",
     "start": "node dist/server.js",
+    "start:prod": "npm run migrate && node dist/server.js",
     "test": "jest --runInBand",
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",

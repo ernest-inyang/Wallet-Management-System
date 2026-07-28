@@ -13,6 +13,7 @@ import { errorMiddleware } from '@common/middleware/error.middleware';
 
 const app = express();
 
+app.set('trust proxy', 1);
 app.use(requestLogger); 
 app.use(helmet());
 app.use(cors());
