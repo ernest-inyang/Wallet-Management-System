@@ -1,0 +1,29 @@
+Client
+  |
+  | POST /transfer
+  |
+  v
+Controller
+  |
+  v
+TransactionService
+  |
+  | Start DB Transaction
+  |
+  +------------------------------+
+  |                              |
+  v                              v
+Lock Sender Wallet         Lock Receiver Wallet
+  |                              |
+  |                              |
+Debit Sender              Credit Receiver
+  |                              |
+Create Ledger Entry      Create Ledger Entry
+  |                              |
+  +--------------+---------------+
+                 |
+                 v
+            Commit Transaction
+                 |
+                 v
+            Success Response

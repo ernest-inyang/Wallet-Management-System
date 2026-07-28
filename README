@@ -1,0 +1,515 @@
+# Wallet Management System
+
+A production-style wallet service built as part of the Lendsqr Backend Engineering Assessment.
+
+The application allows users to:
+
+- Register
+- Login
+- Automatically receive a wallet
+- Fund wallet
+- Transfer money
+- Withdraw money
+- View transaction history
+
+During registration every user is verified against the Lendsqr Adjutor Karma blacklist before onboarding.
+
+The project follows a layered architecture and applies transaction-safe wallet operations using MySQL transactions and row-level locking.
+
+---
+
+# Features
+
+✔ User Registration
+
+✔ Login
+
+✔ JWT Authentication
+
+✔ Automatic Wallet Creation
+
+✔ Wallet Funding
+
+✔ Wallet Withdrawal
+
+✔ Wallet Transfer
+
+✔ Transaction History
+
+✔ Adjutor Karma Blacklist Verification
+
+✔ Unit Tests
+
+✔ Integration Tests
+
+✔ Docker Support
+
+---
+
+# Tech Stack
+
+- NodeJS 20
+- TypeScript
+- Express
+- KnexJS
+- MySQL
+- JWT
+- Jest
+- Supertest
+- Docker
+
+---
+
+# Architecture
+
+The project follows a layered architecture.
+
+```
+Controller
+↓
+
+Service
+↓
+
+Repository
+↓
+
+Database
+```
+
+### Controller
+
+Responsible for
+
+- handling HTTP requests
+- returning responses
+
+Contains zero business logic.
+
+---
+
+### Service
+
+Contains all business rules.
+
+Examples
+
+- user registration
+- transfer validation
+- wallet funding
+- balance checks
+
+---
+
+### Repository
+
+Responsible for database interaction only.
+
+Contains
+
+- create
+- update
+- find
+- delete
+
+No business logic exists here.
+
+---
+
+### Database
+
+MySQL using Knex Query Builder.
+
+All money movement is wrapped inside database transactions.
+
+---
+
+# Folder Structure
+
+```
+src
+│
+├── common
+│
+├── config
+│
+├── modules
+│   ├── users
+│   ├── wallets
+│   ├── transactions
+│   ├── auth
+│   └── adjutor
+│
+├── routes
+│
+database
+│
+tests
+```
+
+---
+
+# Database Design
+
+The system uses three core tables.
+
+### users
+
+Stores customer information.
+
+### wallets
+
+Stores wallet balances.
+
+One wallet belongs to one user.
+
+### transactions
+
+Stores immutable ledger entries.
+
+Every balance update generates a transaction record.
+
+Balances are never modified without recording a transaction.
+
+---
+
+# ER Diagram
+
+(Check this directory for visuals => lendsqr-wallet-service/docs/er-diagram.png)
+
+```
+
+    USERS ||--|| WALLETS : owns
+    WALLETS ||--o{ TRANSACTIONS : records
+
+    USERS {
+        bigint id PK
+        uuid uuid
+        string first_name
+        string last_name
+        string email
+        string phone_number
+    }
+
+    WALLETS {
+        bigint id PK
+        bigint user_id FK
+        decimal balance
+        string currency
+    }
+
+    TRANSACTIONS {
+        bigint id PK
+        bigint wallet_id FK
+        string reference
+        decimal amount
+        string type
+        string direction
+        string status
+    }
+```
+
+
+
+---
+
+# Architecture Diagram
+
+(Check this directory for visuals => lendsqr-wallet-service/docs/architecture.png)
+
+```
+flowchart TD
+
+    A[Client] --> B[Express Routes]
+    B --> C[Controllers]
+    C --> D[Services]
+    D --> E[Repositories]
+    D --> F[Adjutor Service]
+    E --> G[(MySQL)]
+```
+
+---
+
+# Design Decisions
+
+## Wallet Ledger
+
+Instead of updating balances directly, every operation creates a transaction record.
+
+Advantages
+
+- audit trail
+- rollback support
+- reconciliation
+- history
+
+---
+
+## Transactions
+
+All wallet operations run inside
+
+```
+db.transaction(...)
+```
+
+This guarantees
+
+- atomicity
+
+If one query fails
+
+everything rolls back.
+
+---
+
+## Row Locking
+
+Transfers use
+
+```
+SELECT ... FOR UPDATE
+```
+
+to prevent concurrent balance modifications.
+
+This avoids race conditions.
+
+---
+
+## Password Security
+
+Passwords are hashed using bcrypt.
+
+Plain passwords are never stored.
+
+---
+
+## Authentication
+
+JWT-based authentication.
+
+Every protected endpoint requires
+
+```
+Authorization
+
+Bearer <token>
+```
+
+---
+
+## Validation
+
+Every endpoint validates input using Zod before reaching business logic.
+
+---
+
+# API Documentation
+
+## Register
+
+POST
+
+```
+/api/v1/users/register
+```
+
+Request
+
+```json
+{
+  "first_name":"John",
+  "last_name":"Doe",
+  "email":"john@test.com",
+  "phone_number":"08011111111",
+  "password":"Password123!"
+}
+```
+
+---
+
+## Login
+
+POST
+
+```
+/api/v1/users/login
+```
+
+---
+
+## Profile
+
+GET
+
+```
+/api/v1/users/me
+```
+
+---
+
+## Fund Wallet
+
+POST
+
+```
+/api/v1/transactions/fund
+```
+
+---
+
+## Withdraw
+
+POST
+
+```
+/api/v1/transactions/withdraw
+```
+
+---
+
+## Transfer
+
+POST
+
+```
+/api/v1/transactions/transfer
+```
+
+---
+
+## Transaction History
+
+GET
+
+```
+/api/v1/transactions?page=1&limit=10
+```
+
+---
+
+# Installation
+
+Clone repository
+
+```
+git clone <repo>
+```
+
+Install dependencies
+
+```
+npm install
+```
+
+Create
+
+```
+.env
+```
+
+Run migrations
+
+```
+npm run migrate
+```
+
+Start server
+
+```
+npm run dev
+```
+
+---
+
+# Environment Variables
+
+```
+PORT=
+
+NODE_ENV=
+
+DB_HOST=
+
+DB_PORT=
+
+DB_NAME=
+
+DB_USER=
+
+DB_PASSWORD=
+
+JWT_SECRET=
+
+ADJUTOR_BASE_URL=
+
+ADJUTOR_API_KEY=
+```
+
+---
+
+# Running Tests
+
+Unit tests
+
+```
+npm test
+```
+
+Integration tests
+
+```
+npm run test:integration
+```
+
+---
+
+# Docker
+
+Build
+
+```
+docker compose up --build
+```
+
+Stop
+
+```
+docker compose down
+```
+
+---
+
+# Assumptions
+
+- One wallet per user.
+- Wallet currency is NGN.
+- Wallet funding is simulated.
+- External payment gateway integration is outside MVP scope.
+- Authentication is simplified using JWT.
+- Adjutor API is the only onboarding verification service.
+
+---
+
+# Future Improvements
+
+- Refresh Tokens
+- Email Verification
+- Rate Limiting
+- Redis Caching
+- Event-driven Notifications
+- Webhooks
+- Wallet Freezing
+- Multi-currency Support
+- Pagination metadata
+- OpenAPI / Swagger
+- CI/CD Pipeline
+
+---
+
+# Author
+
+Ernest Inyang
+
+Backend Engineer
