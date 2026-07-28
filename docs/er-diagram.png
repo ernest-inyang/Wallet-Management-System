@@ -1,0 +1,47 @@
++----------------------+
+|        USERS         |
++----------------------+
+| id (PK)              |
+| uuid                 |
+| first_name           |
+| last_name            |
+| email                |
+| phone_number         |
+| password_hash        |
+| created_at           |
+| updated_at           |
++----------+-----------+
+           |
+           | 1 : 1
+           |
++----------v-----------+
+|      WALLETS         |
++----------------------+
+| id (PK)              |
+| uuid                 |
+| user_id (FK)         |
+| balance              |
+| currency             |
+| created_at           |
+| updated_at           |
++----------+-----------+
+           |
+           | 1 : many
+           |
++----------v-----------+
+|    TRANSACTIONS      |
++----------------------+
+| id (PK)              |
+| uuid                 |
+| reference            |
+| wallet_id (FK)       |
+| type                 |
+| direction            |
+| status               |
+| amount               |
+| balance_before       |
+| balance_after        |
+| description          |
+| metadata             |
+| created_at           |
++----------------------+

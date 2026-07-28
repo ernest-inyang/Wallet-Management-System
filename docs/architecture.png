@@ -1,0 +1,43 @@
+## System Architecture
+
+```text
+                +------------------+
+                |     Client       |
+                | Postman / Frontend|
+                +---------+--------+
+                          |
+                          |
+                     HTTP Request
+                          |
+                          v
+                +------------------+
+                |  Express Routes  |
+                +---------+--------+
+                          |
+                          |
+                +---------v--------+
+                |   Controllers    |
+                +---------+--------+
+                          |
+                          |
+                +---------v--------+
+                |     Services     |
+                | Business Logic   |
+                +---------+--------+
+                          |
+            +-------------+-------------+
+            |                           |
+            |                           |
++-----------v---------+      +----------v---------+
+|   Repositories      |      |  Adjutor Service   |
+|  Knex Query Builder |      | External API       |
++-----------+---------+      +--------------------+
+            |
+            |
++-----------v----------+
+|       MySQL          |
+| users                |
+| wallets              |
+| transactions         |
++----------------------+
+```
