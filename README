@@ -175,7 +175,7 @@ Balances are never modified without recording a transaction.
 
 # ER Diagram
 
-(Check this directory for visuals => lendsqr-wallet-service/docs/er-diagram.png)
+(Check here for the ERD => https://dbdiagram.io/d/6a68aa13c3a90dd98dd163bd OR this directory for visuals => lendsqr-wallet-service/docs/er-diagram.png)
 
 ```
 
